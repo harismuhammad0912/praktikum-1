@@ -211,7 +211,9 @@
 
           $("#lokasi").html(`${data.location.name}, ${data.location.country}`);
           $("#region").html(`Kecamatan/Wilayah: ${data.location.region}`);
-       
+          $("#suhu").html(`${data.current.temp_c}°C / ${data.current.temp_f}°F`);
+          $("#kondisi").html(data.current.condition.text);
+        
         error: function(error) {
           console.error(error);
           alert("❌ Gagal memuat data cuaca. Pastikan nama kota benar.");
