@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informasi Cuaca Lengkap</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom, #74b9ff, #dfe6e9);
+      color: #2d3436;
+      text-align: center;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    /* animasi awan bergerak */
+    .cloud {
+      position: absolute;
+      top: 50px;
+      width: 200px;
+      height: 100px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: moveClouds 60s linear infinite;
+    }
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+    }
+    .cloud::before {
+      width: 100px;
+      height: 100px;
+      top: -50px;
+      left: 50px;
+    }
+    .cloud::after {
+      width: 120px;
+      height: 120px;
+      top: -60px;
+      left: 100px;
+    }
+
+    @keyframes moveClouds {
+      0% { left: -250px; }
+      100% { left: 110%; }
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      color: #2d3436;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 12px;
+      width: 250px;
+      border-radius: 12px;
+      border: 1px solid #b2bec3;
+      font-size: 16px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border: 1px solid #0984e3;
+      box-shadow: 0 0 8px rgba(9,132,227,0.4);
+    }
+
+    button {
+      padding: 12px 20px;
+      margin-left: 10px;
+      border: none;
+      background: linear-gradient(135deg, #0984e3, #74b9ff);
+      color: white;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #74b9ff, #0984e3);
+      transform: scale(1.05);
+    }
+
+    .cuaca-box {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      display: inline-block;
+      padding: 30px 40px;
+      margin-top: 20px;
+      max-width: 400px;
+      transition: all 0.5s ease-in-out;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .cuaca-box.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .lokasi {
+      font-size: 24px;
+      font-weight: bold;
+      color: #0984e3;
+    }
+
+    .region {
+      font-size: 18px;
+      color: #636e72;
+      margin-bottom: 10px;
+    }
+
+    .suhu {
+      font-size: 50px;
+      margin: 15px 0;
+      font-weight: bold;
+      color: #d63031;
+    }
+
+    .info {
+      font-size: 16px;
+      margin: 5px 0;
+    }
+
+    img {
+      width: 80px;
+      height: 80px;
+    }
+
+    .update {
+      font-size: 12px;
+      color: gray;
+      margin-top: 10px;
+    }
+
+    .coord {
+      font-size: 14px;
+      color: #636e72;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- awan bergerak -->
+  <div class="cloud" style="top:60px; animation-delay:0s;"></div>
+  <div class="cloud" style="top:120px; animation-delay:20s;"></div>
+  <div class="cloud" style="top:200px; animation-delay:40s;"></div>
+
+  <h1>🌦 Informasi Cuaca Lengkap</h1>
+
+  <div class="container">
+    <div class="search-box">
+      <input type="text" id="kota" placeholder="Masukkan nama kota (contoh: Bandung)">
+      <button id="btnGet">GET</button>
+    </div>
+
+    <div class="cuaca-box" id="hasil">
+      <p class="lokasi" id="lokasi"></p>
+      <p class="region" id="region"></p>
+      <img id="ikon" src="" alt="Ikon Cuaca">
+      <p class="suhu" id="suhu"></p>
+      <p class="info" id="kondisi"></p>
+      <p class="info">💨 Angin: <span id="angin"></span> km/jam</p>
+      <p class="info">💧 Kelembapan: <span id="kelembapan"></span>%</p>
+      <p class="coord">📍 Latitude: <span id="lat"></span> | Longitude: <span id="lon"></span></p>
+      <p class="update" id="update"></p>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = "17d5219d5bbb42f992820839250710";
+
+    $("#btnGet").on("click", function() {
+      const kota = $("#kota").val().trim();
+
+      if (kota === "") {
+        alert("⚠ Masukkan nama kota terlebih dahulu!");
+        return;
+      }
+
+      const apiURL = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${kota}&aqi=no`;
+
+      $.ajax({
+        url: apiURL,
+        method: "GET",
+        success: function(data) {
+          // tampilkan hasil
+          $("#hasil").addClass("show");
+
+          $("#lokasi").html(`${data.location.name}, ${data.location.country}`);
+          $("#region").html(`Kecamatan/Wilayah: ${data.location.region}`);
+          $("#suhu").html(`${data.current.temp_c}°C / ${data.current.temp_f}°F`);
+          $("#kondisi").html(data.current.condition.text);
+          $("#ikon").attr("src", "https:" + data.current.condition.icon);
+          $("#angin").html(data.current.wind_kph);
+          $("#kelembapan").html(data.current.humidity);
+          $("#lat").html(data.location.lat);
+          $("#lon").html(data.location.lon);
+          $("#update").html(`Terakhir diperbarui: ${data.current.last_updated}`);
+        },
+        error: function(error) {
+          console.error(error);
+          alert("❌ Gagal memuat data cuaca. Pastikan nama kota benar.");
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
