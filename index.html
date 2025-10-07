@@ -210,8 +210,8 @@
           $("#hasil").addClass("show");
 
           $("#lokasi").html(`${data.location.name}, ${data.location.country}`);
-        
-        },
+          $("#region").html(`Kecamatan/Wilayah: ${data.location.region}`);
+       
         error: function(error) {
           console.error(error);
           alert("❌ Gagal memuat data cuaca. Pastikan nama kota benar.");
